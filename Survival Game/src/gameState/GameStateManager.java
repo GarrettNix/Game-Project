@@ -59,9 +59,11 @@ public class GameStateManager {
 				gameStates[state] = new MenuState(this);
 				break;
 			case PLAY_STATE:
-				// init new PlayState
+				gameStates[state] = new PlayStandard(this);
 				break;
-			default: break;
+			default:
+				gameStates[state] = new MenuState(this);
+				break;
 		}
 	}
 	

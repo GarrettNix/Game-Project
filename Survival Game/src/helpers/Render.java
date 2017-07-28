@@ -320,7 +320,7 @@ public class Render {
 	
 	public static Texture quickLoad(String folder, String name) {
 		Texture texture = null;
-		texture = loadTexture(folder + "/" + name + ".png", "PNG");
+		texture = loadTexture("resources/" + folder + "/" + name + ".png", "PNG");
 		return texture;
 	}
 	
@@ -350,11 +350,11 @@ public class Render {
 		return null;
 	}
 	
-	public static Texture[][] loadTileset(String folder, String name, int width, int height) {
+	public static Texture[][] loadTileset(int set, int width, int height) {
 		BufferedImage image = null;
 		BufferedImage[][] subimages = null;
 		try {
-			image = ImageIO.read(Render.class.getResourceAsStream("/" + folder + "/" + name + ".png"));
+			image = ImageIO.read(Render.class.getResourceAsStream("/resources/tilesets/tileset" + set + ".png"));
 			subimages = new BufferedImage[image.getHeight() / height][image.getWidth() / width];
 			for (int i = 0; i < subimages.length; i++) {
 				for (int j = 0; j < subimages[i].length; j++) {
