@@ -31,7 +31,6 @@ import javax.imageio.ImageIO;
 import org.lwjgl.LWJGLException;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.DisplayMode;
-import org.lwjgl.opengl.GL14;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.TrueTypeFont;
 import org.newdawn.slick.opengl.Texture;
@@ -78,6 +77,7 @@ public class Render {
 		c.bind();
 		glDisable(GL_TEXTURE_2D);
 		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glBegin(GL_QUADS);
 		glVertex2f(x, y);
 		glVertex2f(x + width, y);
@@ -92,6 +92,8 @@ public class Render {
 	public static void drawRect(java.awt.Rectangle rect, Color c) {
 		c.bind();
 		glDisable(GL_TEXTURE_2D);
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glBegin(GL_QUADS);
 		float x = (float) rect.getX();
 		float y = (float) rect.getY();
@@ -103,6 +105,7 @@ public class Render {
 		glVertex2f(x, y + height);
 		glEnd();
 		glEnable(GL_TEXTURE_2D);
+		glDisable(GL_BLEND);
 		Color.white.bind();
 	}
 	
@@ -192,6 +195,27 @@ public class Render {
 		glDisable(GL_BLEND);
 	}
 	
+	public static void drawImageFaded(Texture texture, float x, float y, float a) {
+		glEnable(GL_TEXTURE_2D);
+		glEnable(GL_BLEND);
+		texture.bind();
+		glColor4f(1.0f * a, 1.0f * a, 1.0f * a, a);
+		glTranslatef(x, y, 0);
+		glBegin(GL_QUADS);
+		glTexCoord2f(0, 0);
+		glVertex2f(0, 0);
+		glTexCoord2f(texture.getWidth(), 0);
+		glVertex2f(texture.getImageWidth(), 0);
+		glTexCoord2f(texture.getWidth(), texture.getHeight());
+		glVertex2f(texture.getImageWidth(), texture.getImageHeight());
+		glTexCoord2f(0, texture.getHeight());
+		glVertex2f(0, texture.getImageHeight());
+		glEnd();
+		glLoadIdentity();
+		glDisable(GL_TEXTURE_2D);
+		glDisable(GL_BLEND);
+	}
+	
 	public static void drawBackground(Texture texture, float x, float y) {
 		glEnable(GL_TEXTURE_2D);
 		texture.bind();
@@ -216,29 +240,6 @@ public class Render {
 		texture.bind();
 		glTranslatef(x + width / 2, y + height / 2, 0);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		glBegin(GL_QUADS);
-		glTexCoord2f(0, 0);
-		glVertex2f(-width / 2, -height / 2);
-		glTexCoord2f(texture.getWidth(), 0);
-		glVertex2f(width / 2, -height / 2);
-		glTexCoord2f(texture.getWidth(), texture.getHeight());
-		glVertex2f(width / 2, height / 2);
-		glTexCoord2f(0, texture.getHeight());
-		glVertex2f(-width / 2, height / 2);
-		glEnd();
-		glLoadIdentity();
-		glDisable(GL_TEXTURE_2D);
-		glDisable(GL_BLEND);
-	}
-	
-	public static void drawLaser(Texture texture, float x, float y, float width, float height, float angle) {
-		glEnable(GL_TEXTURE_2D);
-		glEnable(GL_BLEND);
-		GL14.glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE, GL_ZERO, GL_ONE);
-		//glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-		texture.bind();
-		glTranslatef(x + width / 2, y + height / 2, 0);
-		glRotatef(angle, 0, 0, 1);
 		glBegin(GL_QUADS);
 		glTexCoord2f(0, 0);
 		glVertex2f(-width / 2, -height / 2);
@@ -320,7 +321,13 @@ public class Render {
 	
 	public static Texture quickLoad(String folder, String name) {
 		Texture texture = null;
-		texture = loadTexture(folder + "/" + name + ".png", "PNG");
+		texture = loadTexture("resources/" + folder + "/" + name + ".png", "PNG");
+		return texture;
+	}
+	
+	public static Texture quickLoadTGA(String folder, String name) {
+		Texture texture = null;
+		texture = loadTexture("resources/" + folder + "/" + name + ".tga", "TGA");
 		return texture;
 	}
 	
@@ -350,11 +357,31 @@ public class Render {
 		return null;
 	}
 	
-	public static Texture[][] loadTileset(String folder, String name, int width, int height) {
+	public static Texture[] loadSpritesOffset(String folder, String name, int width, int height, int startingY) {
+		BufferedImage image = null;
+		BufferedImage[] subimages = null;
+		try {
+			image = ImageIO.read(Render.class.getResourceAsStream(folder + "/" + name + ".tga"));
+			subimages = new BufferedImage[image.getWidth() / width];
+			for (int i = 0; i < subimages.length; i++) {
+				subimages[i] = image.getSubimage(i * width, startingY, width, height);
+			}
+			Texture[] textures = new Texture[subimages.length];
+			for (int i = 0; i < textures.length; i++) {
+				textures[i] = BufferedImageUtil.getTexture("", subimages[i]);
+			}
+			return textures;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
+	public static Texture[][] loadTileset(int set, int width, int height) {
 		BufferedImage image = null;
 		BufferedImage[][] subimages = null;
 		try {
-			image = ImageIO.read(Render.class.getResourceAsStream("/" + folder + "/" + name + ".png"));
+			image = ImageIO.read(Render.class.getResourceAsStream("/resources/tilesets/tileset" + set + ".png"));
 			subimages = new BufferedImage[image.getHeight() / height][image.getWidth() / width];
 			for (int i = 0; i < subimages.length; i++) {
 				for (int j = 0; j < subimages[i].length; j++) {

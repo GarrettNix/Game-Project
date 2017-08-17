@@ -1,5 +1,8 @@
 package gameState;
 
+import helpers.KeyInput;
+import helpers.MouseInput;
+
 /**
  * 
  * @author Garrett
@@ -40,6 +43,9 @@ public class GameStateManager {
 		setState(currentState);
 	}
 	
+	/**
+	 * Unload the current state, then sets the current game state to whatever is passed.
+	 */
 	public void setState(int state) {
 		unloadState(currentState);
 		currentState = state;
@@ -47,11 +53,7 @@ public class GameStateManager {
 	}
 	
 	/**
-	 * 
-	 * @param state
-	 * 
-	 * Load the GameState that corresponds to the value of
-	 * state recieved.
+	 * Load the GameState that corresponds to the value of state passed.
 	 */
 	private void loadState(int state) {
 		switch (state) {
@@ -59,9 +61,11 @@ public class GameStateManager {
 				gameStates[state] = new MenuState(this);
 				break;
 			case PLAY_STATE:
-				// init new PlayState
+				gameStates[state] = new PlayStandard(this);
 				break;
-			default: break;
+			default:
+				gameStates[state] = new MenuState(this);
+				break;
 		}
 	}
 	
@@ -79,10 +83,18 @@ public class GameStateManager {
 		gameStates[state] = null;
 	}
 	
+	/**
+	 * Update the current mouse and keyboard input, then update the current game state.
+	 */
 	public void update() {
+		KeyInput.update();
+		MouseInput.update();
 		gameStates[currentState].update();
 	}
 	
+	/**
+	 * Render the current game state to the screen.
+	 */
 	public void render() {
 		gameStates[currentState].render();
 	}

@@ -20,7 +20,7 @@ public class Background {
 	private float dy;
 	
 	public Background(String name, float dx) {
-		image = loadTexture("res/backgrounds/" + name + ".png", "PNG");
+		image = loadTexture("resources/backgrounds/" + name + ".png", "PNG");
 		this.dx = dx;
 	}
 	
